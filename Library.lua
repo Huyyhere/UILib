@@ -214,6 +214,18 @@ MeyyHub.Themes = Themes
 local currentTheme = "Dark"
 local function TH() return Themes[currentTheme] end
 
+local function normalizeTheme(name)
+    if type(name) ~= "string" then return nil end
+    if Themes[name] then return name end
+    local lower = string.lower(name)
+    for k in pairs(Themes) do
+        if string.lower(k) == lower then
+            return k
+        end
+    end
+    return nil
+end
+
 local function tw(obj, props, t, s, d)
     pcall(function()
         TweenService:Create(obj,
@@ -287,7 +299,7 @@ end
 local function label(p, txt, font, sz, col, xa, zi)
     local l = Instance.new("TextLabel", p)
     l.BackgroundTransparency = 1
-    l.Font = font or Enum.Font.GothamBold
+    l.Font = font or Enum.Font.Gotham
     l.Text = txt or ""
     l.TextSize = sz or 13
     l.TextColor3 = col or TH().TextPri
@@ -376,7 +388,10 @@ MeyyHub.GetThemes = function(self)
 end
 
 MeyyHub.SetTheme = function(self, name)
-    applyTheme(name)
+    local themeName = normalizeTheme(name)
+    if themeName then
+        applyTheme(themeName)
+    end
 end
 
 local notifList = {}
@@ -498,13 +513,14 @@ function MeyyHub:CreateWindow(cfg)
     local AV_H      = 78
     local FOLDER    = cfg.Folder or "MeyyHub"
     local MinKey    = cfg.ToggleKey or cfg.MinimizeKey or Enum.KeyCode.RightShift
-    local UseAcr    = cfg.Acrylic == true
+    local UseAcr    = false
     local Resizable = cfg.Resizable ~= false
     local MacBtns   = cfg.Topbar and cfg.Topbar.ButtonsType == "Mac"
 
     self._folder = FOLDER
 
-    if Themes[cfg.Theme or ""] then currentTheme = cfg.Theme end
+    local themeName = normalizeTheme(cfg.Theme) or "Dark"
+    currentTheme = themeName
 
     if getgenv and getgenv().__MeyyHub_Root then
         pcall(function() getgenv().__MeyyHub_Root:Destroy() end)
@@ -543,29 +559,13 @@ function MeyyHub:CreateWindow(cfg)
     local Win = frame(Root, "Window",
         UDim2.new(0, WIN_W, 0, WIN_H),
         UDim2.new(0.5, 0, 0.5, 0),
-        th.Window, UseAcr and 0.06 or 0, 2, true)
+        th.Window, 0, 2, true)
     Win.AnchorPoint = Vector2.new(0.5, 0.5)
     corner(Win, 12)
     regBg(Win, "Window")
 
     local winStroke = stroke(Win, 1, th.Stroke)
     table.insert(_reg.strokes, winStroke)
-
-    if UseAcr then
-        local glass = frame(Win, "Glass", UDim2.new(1, 0, 1, 0), UDim2.new(0, 0, 0, 0), Color3.new(1, 1, 1), 0.964, 3)
-        corner(glass, 12)
-        local gg = Instance.new("UIGradient", glass)
-        gg.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0,   Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 210, 255)),
-            ColorSequenceKeypoint.new(1,   Color3.new(1, 1, 1)),
-        })
-        gg.Rotation = 135
-        local cG = RunService.RenderStepped:Connect(function()
-            gg.Offset = Vector2.new(math.sin(tick() * 0.4) * 0.2, math.cos(tick() * 0.3) * 0.1)
-        end)
-        table.insert(self._conns, cG)
-    end
 
     local normalSize = UDim2.new(0, WIN_W, 0, WIN_H)
     local normalPos  = UDim2.new(0.5, 0, 0.5, 0)
