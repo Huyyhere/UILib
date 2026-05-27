@@ -37,10 +37,10 @@ function Library:CreateLoader(config)
     local accent    = config.Accent    or THEME.Blue
     local onError   = config.OnError   or function(e) warn("[Meyy Hub]:", e) end
     local steps     = config.Steps or {
-        { at = 0.00, text = "Initializing"            },
-        { at = 0.22, text = "Checking configuration"  },
-        { at = 0.50, text = "Downloading script"      },
-        { at = 0.80, text = "Opening interface"       },
+        { at = 0.00, text = "Initializing"           },
+        { at = 0.22, text = "Checking configuration" },
+        { at = 0.50, text = "Downloading script"     },
+        { at = 0.80, text = "Opening interface"      },
     }
 
     local old = CoreGui:FindFirstChild("MeyyHubLoader")
@@ -72,7 +72,6 @@ function Library:CreateLoader(config)
     outerGrad.Color = THEME.StrokeSeq
     table.insert(rotGrads, outerGrad)
 
-    -- top highlight
     local topHighlight = Instance.new("Frame", frame)
     topHighlight.Size               = UDim2.new(0.5, 0, 0, 1)
     topHighlight.Position           = UDim2.new(0.25, 0, 0, 0)
@@ -87,7 +86,6 @@ function Library:CreateLoader(config)
         ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
     })
 
-    -- ambient glow blobs
     local function makeBlob(parent, color, size, pos, trans)
         local b = Instance.new("Frame", parent)
         b.Size               = UDim2.new(0, size, 0, size)
@@ -99,20 +97,17 @@ function Library:CreateLoader(config)
         Instance.new("UICorner", b).CornerRadius = UDim.new(1, 0)
         return b
     end
-    makeBlob(frame, accent,       160, UDim2.new(1, -30, 1, -20),  0.91)
-    makeBlob(frame, THEME.Purple, 100, UDim2.new(0, -20, 0, -10),  0.93)
+    makeBlob(frame, accent,       160, UDim2.new(1, -30, 1, -20), 0.91)
+    makeBlob(frame, THEME.Purple, 100, UDim2.new(0, -20, 0, -10), 0.93)
 
-    -- header panel
     local header = Instance.new("Frame", frame)
     header.Size               = UDim2.new(1, 0, 0, 64)
-    header.Position           = UDim2.new(0, 0, 0, 0)
     header.BackgroundColor3   = THEME.Surface
     header.BackgroundTransparency = 0.3
     header.BorderSizePixel    = 0
     header.ZIndex             = 11
     Instance.new("UICorner", header).CornerRadius = UDim.new(0, 16)
 
-    -- clip bottom corners of header
     local headerClip = Instance.new("Frame", header)
     headerClip.Size               = UDim2.new(1, 0, 0, 16)
     headerClip.Position           = UDim2.new(0, 0, 1, -16)
@@ -121,45 +116,60 @@ function Library:CreateLoader(config)
     headerClip.BorderSizePixel    = 0
     headerClip.ZIndex             = 11
 
-    -- accent pill left
-    local pill = Instance.new("Frame", header)
-    pill.Size             = UDim2.new(0, 3, 0, 26)
-    pill.Position         = UDim2.new(0, 18, 0.5, 0)
-    pill.AnchorPoint      = Vector2.new(0, 0.5)
-    pill.BackgroundColor3 = accent
-    pill.BorderSizePixel  = 0
-    pill.ZIndex           = 14
-    Instance.new("UICorner", pill).CornerRadius = UDim.new(1, 0)
-    local pillGrad = Instance.new("UIGradient", pill)
-    pillGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   Color3.fromHex("#FFFFFF")),
-        ColorSequenceKeypoint.new(0.5, accent),
-        ColorSequenceKeypoint.new(1,   THEME.Purple),
+    local dot = Instance.new("Frame", header)
+    dot.Size             = UDim2.new(0, 7, 0, 7)
+    dot.Position         = UDim2.new(0, 18, 0.5, 0)
+    dot.AnchorPoint      = Vector2.new(0, 0.5)
+    dot.BackgroundColor3 = accent
+    dot.BorderSizePixel  = 0
+    dot.ZIndex           = 14
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+    local dotGrad = Instance.new("UIGradient", dot)
+    dotGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1, accent),
     })
-    pillGrad.Rotation = 90
+    dotGrad.Rotation = 90
 
-    -- title: "Meyy Hub · King Legacy Script" semua 1 dòng
-    local titleFull = ("Meyy Hub  ·  %s Script"):format(gameName)
+    task.spawn(function()
+        local ds = Instance.new("UIScale", dot)
+        while dot and dot.Parent do
+            makeTween(ds, 0.7, {Scale = 1.4}):Play()
+            task.wait(0.7)
+            makeTween(ds, 0.7, {Scale = 1}):Play()
+            task.wait(0.7)
+        end
+    end)
+
     local titleLabel = Instance.new("TextLabel", header)
-    titleLabel.Size               = UDim2.new(1, -80, 0, 20)
-    titleLabel.Position           = UDim2.new(0, 30, 0.5, -10)
+    titleLabel.Size               = UDim2.new(1, -90, 0, 20)
+    titleLabel.Position           = UDim2.new(0, 32, 0.5, -11)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font               = Enum.Font.GothamBold
-    titleLabel.Text               = titleFull
+    titleLabel.Text               = "Meyy Hub  ·  " .. gameName .. " Script"
     titleLabel.TextSize           = 13
     titleLabel.TextColor3         = THEME.TextHi
     titleLabel.TextXAlignment     = Enum.TextXAlignment.Left
     titleLabel.TextTruncate       = Enum.TextTruncate.AtEnd
     titleLabel.ZIndex             = 14
-
     local titleGrad = Instance.new("UIGradient", titleLabel)
     titleGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(0,    Color3.fromHex("#FFFFFF")),
         ColorSequenceKeypoint.new(0.55, Color3.fromHex("#CCCCEE")),
-        ColorSequenceKeypoint.new(1,   Color3.fromHex("#7777AA")),
+        ColorSequenceKeypoint.new(1,    Color3.fromHex("#7777AA")),
     })
 
-    -- status chip bên phải header
+    local subtitleLabel = Instance.new("TextLabel", header)
+    subtitleLabel.Size               = UDim2.new(1, -90, 0, 12)
+    subtitleLabel.Position           = UDim2.new(0, 32, 0.5, 11)
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Font               = Enum.Font.Gotham
+    subtitleLabel.Text               = version ~= "" and version or "Meyy Hub"
+    subtitleLabel.TextSize           = 9
+    subtitleLabel.TextColor3         = THEME.TextLo
+    subtitleLabel.TextXAlignment     = Enum.TextXAlignment.Left
+    subtitleLabel.ZIndex             = 13
+
     local chip = Instance.new("Frame", header)
     chip.Size               = UDim2.new(0, 60, 0, 20)
     chip.Position           = UDim2.new(1, -72, 0.5, -10)
@@ -192,19 +202,16 @@ function Library:CreateLoader(config)
     chipLabel.TextXAlignment     = Enum.TextXAlignment.Left
     chipLabel.ZIndex             = 15
 
-    -- version nhỏ bên dưới title
-    local subtitleRow = Instance.new("TextLabel", header)
-    subtitleRow.Size               = UDim2.new(1, -80, 0, 12)
-    subtitleRow.Position           = UDim2.new(0, 30, 0.5, 12)
-    subtitleRow.BackgroundTransparency = 1
-    subtitleRow.Font               = Enum.Font.Gotham
-    subtitleRow.Text               = version ~= "" and version or "Meyy Hub"
-    subtitleRow.TextSize           = 9
-    subtitleRow.TextColor3         = THEME.TextLo
-    subtitleRow.TextXAlignment     = Enum.TextXAlignment.Left
-    subtitleRow.ZIndex             = 13
+    task.spawn(function()
+        local cs = Instance.new("UIScale", chipDot)
+        while chipDot and chipDot.Parent do
+            makeTween(cs, 0.55, {Scale = 1.5}):Play()
+            task.wait(0.55)
+            makeTween(cs, 0.55, {Scale = 1}):Play()
+            task.wait(0.55)
+        end
+    end)
 
-    -- divider
     local divider = Instance.new("Frame", frame)
     divider.Size               = UDim2.new(1, -36, 0, 1)
     divider.Position           = UDim2.new(0, 18, 0, 64)
@@ -219,7 +226,6 @@ function Library:CreateLoader(config)
         ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
     })
 
-    -- bottom content
     local content = Instance.new("Frame", frame)
     content.Size               = UDim2.new(1, -36, 1, -76)
     content.Position           = UDim2.new(0, 18, 0, 70)
@@ -253,7 +259,6 @@ function Library:CreateLoader(config)
     pctLabel.TextXAlignment     = Enum.TextXAlignment.Right
     pctLabel.ZIndex             = 11
 
-    -- track
     local barTrack = Instance.new("Frame", content)
     barTrack.Size             = UDim2.new(1, 0, 0, 2)
     barTrack.Position         = UDim2.new(0, 0, 0, 22)
@@ -271,13 +276,12 @@ function Library:CreateLoader(config)
 
     local barGrad = Instance.new("UIGradient", barFill)
     barGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   accent),
+        ColorSequenceKeypoint.new(0,    accent),
         ColorSequenceKeypoint.new(0.65, Color3.fromHex("#C0CCFF")),
-        ColorSequenceKeypoint.new(1,   Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1,    Color3.fromHex("#FFFFFF")),
     })
     table.insert(rotGrads, barGrad)
 
-    -- shimmer on bar
     local shimmer = Instance.new("Frame", barFill)
     shimmer.Size             = UDim2.new(0.28, 0, 1, 0)
     shimmer.Position         = UDim2.new(-0.32, 0, 0, 0)
@@ -302,18 +306,6 @@ function Library:CreateLoader(config)
         end
     end)
 
-    -- chip dot pulse
-    task.spawn(function()
-        local ds = Instance.new("UIScale", chipDot)
-        while chipDot and chipDot.Parent do
-            makeTween(ds, 0.55, {Scale = 1.5}):Play()
-            task.wait(0.55)
-            makeTween(ds, 0.55, {Scale = 1}):Play()
-            task.wait(0.55)
-        end
-    end)
-
-    -- rotation
     local rot = 0
     local rotConn
     rotConn = RunService.RenderStepped:Connect(function()
@@ -352,8 +344,8 @@ function Library:CreateLoader(config)
         chipStroke.Color         = color
         pctLabel.TextColor3      = color
         pctLabel.Text            = fail and "—" or "100%"
-        pill.BackgroundColor3    = color
-        pillGrad.Enabled         = false
+        dot.BackgroundColor3     = color
+        dotGrad.Enabled          = false
         setStatus(statusText)
     end
 
@@ -370,7 +362,6 @@ function Library:CreateLoader(config)
         end)
     end
 
-    -- open animation
     TweenService:Create(frame,
         TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         { Size = UDim2.new(0, W, 0, H) }
