@@ -5,22 +5,22 @@ local TweenService = game:GetService("TweenService")
 local Library = {}
 
 local THEME = {
-    Bg      = Color3.fromHex("#14142A"),
-    Surface = Color3.fromHex("#1C1C36"),
-    Stroke  = Color3.fromHex("#2A2A4A"),
-    Text01  = Color3.fromHex("#F0F0FF"),
-    Text02  = Color3.fromHex("#8888BB"),
-    Text03  = Color3.fromHex("#505080"),
-    Green   = Color3.fromHex("#00E5A0"),
-    Blue    = Color3.fromHex("#7B8CFF"),
-    Purple  = Color3.fromHex("#A78BFF"),
-    Red     = Color3.fromHex("#FF4D6D"),
+    Bg      = Color3.fromHex("#0A0A14"),
+    Surface = Color3.fromHex("#12121E"),
+    Border  = Color3.fromHex("#1E1E32"),
+    Text01  = Color3.fromHex("#EEEEFF"),
+    Text02  = Color3.fromHex("#7A7AA8"),
+    Text03  = Color3.fromHex("#44446A"),
+    Green   = Color3.fromHex("#00D68F"),
+    Blue    = Color3.fromHex("#6E7FFF"),
+    Purple  = Color3.fromHex("#9D7FFF"),
+    Red     = Color3.fromHex("#FF4060"),
     Seq     = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,    Color3.fromHex("#2A2A4A")),
-        ColorSequenceKeypoint.new(0.25, Color3.fromHex("#7B8CFF")),
-        ColorSequenceKeypoint.new(0.5,  Color3.fromHex("#A78BFF")),
-        ColorSequenceKeypoint.new(0.75, Color3.fromHex("#7B8CFF")),
-        ColorSequenceKeypoint.new(1,    Color3.fromHex("#2A2A4A")),
+        ColorSequenceKeypoint.new(0,    Color3.fromHex("#1A1A30")),
+        ColorSequenceKeypoint.new(0.25, Color3.fromHex("#6E7FFF")),
+        ColorSequenceKeypoint.new(0.5,  Color3.fromHex("#9D7FFF")),
+        ColorSequenceKeypoint.new(0.75, Color3.fromHex("#6E7FFF")),
+        ColorSequenceKeypoint.new(1,    Color3.fromHex("#1A1A30")),
     }),
 }
 
@@ -47,7 +47,7 @@ function Library:CreateLoader(config)
     if old then old:Destroy() end
 
     local rotGrads = {}
-    local W, H = 400, 150
+    local W, H = 420, 140
 
     local gui = Instance.new("ScreenGui")
     gui.Name           = "MeyyHubLoader"
@@ -67,22 +67,23 @@ function Library:CreateLoader(config)
 
     local gradient = Instance.new("UIGradient", frame)
     gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   Color3.fromHex("#1A1A34")),
-        ColorSequenceKeypoint.new(1,   Color3.fromHex("#14142A")),
+        ColorSequenceKeypoint.new(0,   Color3.fromHex("#0F0F20")),
+        ColorSequenceKeypoint.new(1,   THEME.Bg),
     })
+    gradient.Rotation = 90
 
     local stroke = Instance.new("UIStroke", frame)
-    stroke.Color     = THEME.Stroke
+    stroke.Color     = THEME.Border
     stroke.Thickness = 1
 
     local gstroke = Instance.new("UIStroke", frame)
     gstroke.Thickness = 1.5
-    gstroke.Transparency = 0.4
+    gstroke.Transparency = 0.45
     local ggrad = Instance.new("UIGradient", gstroke)
     ggrad.Color = THEME.Seq
     table.insert(rotGrads, ggrad)
 
-    local PAD = 26
+    local PAD = 24
     local cx = Instance.new("Frame", frame)
     cx.Size               = UDim2.new(1, -(PAD * 2), 1, -(PAD * 2))
     cx.Position           = UDim2.new(0, PAD, 0, PAD)
@@ -90,18 +91,49 @@ function Library:CreateLoader(config)
     cx.ZIndex             = 11
 
     local title = Instance.new("TextLabel", cx)
-    title.Size               = UDim2.new(1, 0, 0, 22)
+    title.Size               = UDim2.new(0, 0, 0, 24)
     title.BackgroundTransparency = 1
     title.Font               = Enum.Font.GothamBold
     title.Text               = "Meyy Hub"
-    title.TextSize           = 17
+    title.TextSize           = 18
     title.TextColor3         = THEME.Text01
     title.TextXAlignment     = Enum.TextXAlignment.Left
     title.ZIndex             = 12
+    title.Size               = UDim2.new(0, title.TextBounds.X + 4, 0, 24)
+
+    local dot = Instance.new("Frame", cx)
+    dot.Size             = UDim2.new(0, 6, 0, 6)
+    dot.Position         = UDim2.new(0, title.TextBounds.X + 12, 0.5, -3)
+    dot.BackgroundColor3 = accent
+    dot.BorderSizePixel  = 0
+    dot.ZIndex           = 13
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+
+    local dotGlow = Instance.new("Frame", dot)
+    dotGlow.Size               = UDim2.new(3, 0, 3, 0)
+    dotGlow.Position           = UDim2.new(-1, 0, -1, 0)
+    dotGlow.BackgroundColor3   = accent
+    dotGlow.BackgroundTransparency = 0.6
+    dotGlow.BorderSizePixel    = 0
+    dotGlow.ZIndex             = 12
+    Instance.new("UICorner", dotGlow).CornerRadius = UDim.new(1, 0)
+
+    task.spawn(function()
+        local ds = Instance.new("UIScale", dot)
+        local dg = dotGlow
+        while dot and dot.Parent do
+            tween(ds, 0.6, {Scale = 1.5}):Play()
+            if dg and dg.Parent then tween(dg, 0.6, {BackgroundTransparency = 0.4}):Play() end
+            task.wait(0.6)
+            tween(ds, 0.6, {Scale = 1}):Play()
+            if dg and dg.Parent then tween(dg, 0.6, {BackgroundTransparency = 0.6}):Play() end
+            task.wait(0.6)
+        end
+    end)
 
     local subtitle = Instance.new("TextLabel", cx)
-    subtitle.Size               = UDim2.new(1, 0, 0, 18)
-    subtitle.Position           = UDim2.new(0, 0, 0, 24)
+    subtitle.Size               = UDim2.new(1, 0, 0, 16)
+    subtitle.Position           = UDim2.new(0, 0, 0, 28)
     subtitle.BackgroundTransparency = 1
     subtitle.Font               = Enum.Font.Gotham
     subtitle.Text               = gameName
@@ -111,17 +143,7 @@ function Library:CreateLoader(config)
     subtitle.ZIndex             = 12
 
     if version ~= "" then
-        local vtag = Instance.new("TextLabel", subtitle)
-        vtag.Size               = UDim2.new(0, 0, 0, 16)
-        vtag.Position           = UDim2.new(0, subtitle.TextBounds.X + 10, 0.5, -8)
-        vtag.BackgroundColor3   = THEME.Surface
-        vtag.BackgroundTransparency = 0
-        vtag.BorderSizePixel    = 0
-        vtag.ZIndex             = 13
-        Instance.new("UICorner", vtag).CornerRadius = UDim.new(0, 4)
-        local vb = Instance.new("UIStroke", vtag)
-        vb.Color = THEME.Stroke
-        vb.Thickness = 1
+        local vtag = Instance.new("Frame", subtitle)
         local vl = Instance.new("TextLabel", vtag)
         vl.Size               = UDim2.new(1, -10, 1, 0)
         vl.Position           = UDim2.new(0, 5, 0, 0)
@@ -132,27 +154,21 @@ function Library:CreateLoader(config)
         vl.TextColor3         = THEME.Text02
         vl.TextXAlignment     = Enum.TextXAlignment.Center
         vl.ZIndex             = 14
-        vtag.Size = UDim2.new(0, vl.TextBounds.X + 14, 0, 16)
+        vtag.Size               = UDim2.new(0, vl.TextBounds.X + 14, 0, 18)
+        vtag.Position           = UDim2.new(0, subtitle.TextBounds.X + 10, 0.5, -9)
+        vtag.BackgroundColor3   = THEME.Surface
+        vtag.BorderSizePixel    = 0
+        vtag.ZIndex             = 13
+        Instance.new("UICorner", vtag).CornerRadius = UDim.new(0, 5)
+        local vb = Instance.new("UIStroke", vtag)
+        vb.Color = THEME.Border
+        vb.Thickness = 1
     end
-
-    local line = Instance.new("Frame", cx)
-    line.Size               = UDim2.new(1, 0, 0, 1)
-    line.Position           = UDim2.new(0, 0, 0, 54)
-    line.BackgroundColor3   = Color3.fromHex("#FFFFFF")
-    line.BackgroundTransparency = 0.9
-    line.BorderSizePixel    = 0
-    line.ZIndex             = 12
-    local lg = Instance.new("UIGradient", line)
-    lg.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   Color3.fromHex("#000000")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-        ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
-    })
 
     local barTrack = Instance.new("Frame", cx)
     barTrack.Size             = UDim2.new(1, 0, 0, 4)
-    barTrack.Position         = UDim2.new(0, 0, 0, 66)
-    barTrack.BackgroundColor3 = Color3.fromHex("#1E1E3A")
+    barTrack.Position         = UDim2.new(0, 0, 0, 60)
+    barTrack.BackgroundColor3 = Color3.fromHex("#1A1A30")
     barTrack.BorderSizePixel  = 0
     barTrack.ZIndex           = 11
     Instance.new("UICorner", barTrack).CornerRadius = UDim.new(1, 0)
@@ -167,23 +183,23 @@ function Library:CreateLoader(config)
     local bg = Instance.new("UIGradient", barFill)
     bg.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0,    accent),
-        ColorSequenceKeypoint.new(0.6,  Color3.fromHex("#C0CCFF")),
+        ColorSequenceKeypoint.new(0.5,  Color3.fromHex("#C0CCFF")),
         ColorSequenceKeypoint.new(1,    Color3.fromHex("#FFFFFF")),
     })
     table.insert(rotGrads, bg)
 
     local barGlow = Instance.new("Frame", barTrack)
-    barGlow.Size             = UDim2.new(0, 0, 1, 8)
-    barGlow.Position         = UDim2.new(0, 0, 0, -4)
+    barGlow.Size             = UDim2.new(0, 0, 1, 10)
+    barGlow.Position         = UDim2.new(0, 0, 0, -5)
     barGlow.BackgroundColor3 = accent
-    barGlow.BackgroundTransparency = 0.75
+    barGlow.BackgroundTransparency = 0.8
     barGlow.BorderSizePixel  = 0
     barGlow.ZIndex           = 10
     Instance.new("UICorner", barGlow).CornerRadius = UDim.new(1, 0)
 
     local statusLabel = Instance.new("TextLabel", cx)
-    statusLabel.Size               = UDim2.new(1, -60, 0, 18)
-    statusLabel.Position           = UDim2.new(0, 0, 0, 78)
+    statusLabel.Size               = UDim2.new(1, -65, 0, 18)
+    statusLabel.Position           = UDim2.new(0, 0, 0, 74)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Font               = Enum.Font.Gotham
     statusLabel.Text               = "Initializing"
@@ -193,12 +209,12 @@ function Library:CreateLoader(config)
     statusLabel.ZIndex             = 12
 
     local pctLabel = Instance.new("TextLabel", cx)
-    pctLabel.Size               = UDim2.new(0, 55, 0, 18)
-    pctLabel.Position           = UDim2.new(1, -55, 0, 78)
+    pctLabel.Size               = UDim2.new(0, 60, 0, 18)
+    pctLabel.Position           = UDim2.new(1, -60, 0, 74)
     pctLabel.BackgroundTransparency = 1
     pctLabel.Font               = Enum.Font.GothamBold
     pctLabel.Text               = "0%"
-    pctLabel.TextSize           = 11
+    pctLabel.TextSize           = 12
     pctLabel.TextColor3         = accent
     pctLabel.TextXAlignment     = Enum.TextXAlignment.Right
     pctLabel.ZIndex             = 12
@@ -230,7 +246,7 @@ function Library:CreateLoader(config)
             pctLabel.Text = n .. "%"
         end
         tween(barFill, 0.12, {Size = UDim2.new(p, 0, 1, 0)}):Play()
-        tween(barGlow, 0.12, {Size = UDim2.new(p, 0, 1, 8)}):Play()
+        tween(barGlow, 0.12, {Size = UDim2.new(p, 0, 1, 10)}):Play()
     end
 
     local function fadeOut(delay, cb)
