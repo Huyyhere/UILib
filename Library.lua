@@ -4,7 +4,26 @@ local TweenService = game:GetService("TweenService")
 
 local Library = {}
 
-local function tween(obj, t, props)
+local THEME = {
+    Bg       = Color3.fromHex("#09090E"),
+    BgTrans  = 0.02,
+    Surface  = Color3.fromHex("#0F0F18"),
+    Surface2 = Color3.fromHex("#14141F"),
+    TextHi   = Color3.fromHex("#EEEEFF"),
+    TextLo   = Color3.fromHex("#32324A"),
+    TextDim  = Color3.fromHex("#22222E"),
+    Green    = Color3.fromHex("#00D68F"),
+    Blue     = Color3.fromHex("#6E7FFF"),
+    Purple   = Color3.fromHex("#9D7FFF"),
+    StrokeSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   Color3.fromHex("#111120")),
+        ColorSequenceKeypoint.new(0.3, Color3.fromHex("#6E7FFF")),
+        ColorSequenceKeypoint.new(0.7, Color3.fromHex("#9D7FFF")),
+        ColorSequenceKeypoint.new(1,   Color3.fromHex("#111120")),
+    }),
+}
+
+local function makeTween(obj, t, props)
     return TweenService:Create(obj, TweenInfo.new(t, Enum.EasingStyle.Sine), props)
 end
 
@@ -13,8 +32,8 @@ function Library:CreateLoader(config)
     local gameName  = config.GameName  or "Unknown Game"
     local scriptRaw = config.ScriptRaw or ""
     local version   = config.Version   or ""
-    local duration  = config.Duration  or 3.5
-    local accent    = config.Accent    or Color3.fromHex("#6E7FFF")
+    local duration  = config.Duration  or 3.0
+    local accent    = config.Accent    or THEME.Blue
     local onError   = config.OnError   or function(e) warn("[Meyy Hub]:", e) end
     local steps     = config.Steps or {
         { at = 0.00, text = "Initializing"           },
@@ -26,8 +45,8 @@ function Library:CreateLoader(config)
     local old = CoreGui:FindFirstChild("MeyyHubLoader")
     if old then old:Destroy() end
 
-    local W, H = 380, 148
-    local supported = scriptRaw ~= ""
+    local rotGrads = {}
+    local W, H = 420, 108
 
     local gui = Instance.new("ScreenGui")
     gui.Name           = "MeyyHubLoader"
@@ -39,215 +58,354 @@ function Library:CreateLoader(config)
     frame.AnchorPoint            = Vector2.new(0.5, 0.5)
     frame.Position               = UDim2.new(0.5, 0, 0.5, 0)
     frame.Size                   = UDim2.new(0, 0, 0, 0)
-    frame.BackgroundColor3       = Color3.fromHex("#0D0D1A")
+    frame.BackgroundColor3       = THEME.Bg
+    frame.BackgroundTransparency = THEME.BgTrans
     frame.BorderSizePixel        = 0
     frame.ClipsDescendants       = true
     frame.ZIndex                 = 10
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 16)
 
-    local grad = Instance.new("UIGradient", frame)
-    grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   Color3.fromHex("#111128")),
-        ColorSequenceKeypoint.new(1,   Color3.fromHex("#0D0D1A")),
+    local outerStroke = Instance.new("UIStroke", frame)
+    outerStroke.Thickness = 1.2
+    local outerGrad = Instance.new("UIGradient", outerStroke)
+    outerGrad.Color = THEME.StrokeSeq
+    table.insert(rotGrads, outerGrad)
+
+    local topHighlight = Instance.new("Frame", frame)
+    topHighlight.Size               = UDim2.new(0.5, 0, 0, 1)
+    topHighlight.Position           = UDim2.new(0.25, 0, 0, 0)
+    topHighlight.BackgroundColor3   = Color3.new(1, 1, 1)
+    topHighlight.BackgroundTransparency = 0.55
+    topHighlight.BorderSizePixel    = 0
+    topHighlight.ZIndex             = 20
+    local thGrad = Instance.new("UIGradient", topHighlight)
+    thGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   Color3.fromHex("#000000")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
     })
-    grad.Rotation = 90
 
-    local border = Instance.new("UIStroke", frame)
-    border.Color     = Color3.fromHex("#1E1E38")
-    border.Thickness = 1
+    local function makeBlob(parent, color, size, pos, trans)
+        local b = Instance.new("Frame", parent)
+        b.Size               = UDim2.new(0, size, 0, size)
+        b.Position           = pos
+        b.BackgroundColor3   = color
+        b.BackgroundTransparency = trans
+        b.BorderSizePixel    = 0
+        b.ZIndex             = 2
+        Instance.new("UICorner", b).CornerRadius = UDim.new(1, 0)
+        return b
+    end
+    makeBlob(frame, accent,       160, UDim2.new(1, -30, 1, -20), 0.91)
+    makeBlob(frame, THEME.Purple, 100, UDim2.new(0, -20, 0, -10), 0.93)
 
-    -- Dots container
-    local dots = Instance.new("Frame", frame)
-    dots.Size               = UDim2.new(0, 36, 0, 8)
-    dots.Position           = UDim2.new(0.5, -18, 0, 22)
-    dots.BackgroundTransparency = 1
-    dots.ZIndex             = 12
+    local header = Instance.new("Frame", frame)
+    header.Size               = UDim2.new(1, 0, 0, 64)
+    header.BackgroundColor3   = THEME.Surface
+    header.BackgroundTransparency = 0.3
+    header.BorderSizePixel    = 0
+    header.ZIndex             = 11
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 16)
 
-    for i = 1, 3 do
-        local d = Instance.new("Frame", dots)
-        d.Size             = UDim2.new(0, 7, 0, 7)
-        d.Position         = UDim2.new(0, (i - 1) * 14, 0, 0)
-        d.BackgroundColor3 = accent
-        d.BorderSizePixel  = 0
-        d.ZIndex           = 13
-        Instance.new("UICorner", d).CornerRadius = UDim.new(1, 0)
+    local headerClip = Instance.new("Frame", header)
+    headerClip.Size               = UDim2.new(1, 0, 0, 16)
+    headerClip.Position           = UDim2.new(0, 0, 1, -16)
+    headerClip.BackgroundColor3   = THEME.Surface
+    headerClip.BackgroundTransparency = 0.3
+    headerClip.BorderSizePixel    = 0
+    headerClip.ZIndex             = 11
 
-        local dg = Instance.new("Frame", d)
-        dg.Size               = UDim2.new(2.5, 0, 2.5, 0)
-        dg.Position           = UDim2.new(-0.75, 0, -0.75, 0)
-        dg.BackgroundColor3   = accent
-        dg.BackgroundTransparency = 0.6
-        dg.BorderSizePixel    = 0
-        dg.ZIndex             = 12
-        Instance.new("UICorner", dg).CornerRadius = UDim.new(1, 0)
+    local dot = Instance.new("Frame", header)
+    dot.Size             = UDim2.new(0, 7, 0, 7)
+    dot.Position         = UDim2.new(0, 18, 0.5, 0)
+    dot.AnchorPoint      = Vector2.new(0, 0.5)
+    dot.BackgroundColor3 = accent
+    dot.BorderSizePixel  = 0
+    dot.ZIndex           = 14
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+    local dotGrad = Instance.new("UIGradient", dot)
+    dotGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1, accent),
+    })
+    dotGrad.Rotation = 90
 
-        task.spawn(function()
-            local waitTime = i > 1 and (i - 1) * 0.2 or 0
-            task.wait(waitTime)
-            local scale = Instance.new("UIScale", d)
-            local glow = dg
-            while d and d.Parent do
-                tween(scale, 0.5, {Scale = 1.6}):Play()
-                if glow and glow.Parent then tween(glow, 0.5, {BackgroundTransparency = 0.35}):Play() end
-                task.wait(0.5)
-                tween(scale, 0.5, {Scale = 1}):Play()
-                if glow and glow.Parent then tween(glow, 0.5, {BackgroundTransparency = 0.6}):Play() end
-                task.wait(0.5)
-            end
+    task.spawn(function()
+        local ds = Instance.new("UIScale", dot)
+        while dot and dot.Parent do
+            makeTween(ds, 0.7, {Scale = 1.4}):Play()
+            task.wait(0.7)
+            makeTween(ds, 0.7, {Scale = 1}):Play()
+            task.wait(0.7)
+        end
+    end)
+
+    local titleLabel = Instance.new("TextLabel", header)
+    titleLabel.Size               = UDim2.new(1, -90, 0, 20)
+    titleLabel.Position           = UDim2.new(0, 32, 0.5, -11)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font               = Enum.Font.GothamBold
+    titleLabel.Text               = "Meyy Hub  ·  " .. gameName .. " Script"
+    titleLabel.TextSize           = 13
+    titleLabel.TextColor3         = THEME.TextHi
+    titleLabel.TextXAlignment     = Enum.TextXAlignment.Left
+    titleLabel.TextTruncate       = Enum.TextTruncate.AtEnd
+    titleLabel.ZIndex             = 14
+    local titleGrad = Instance.new("UIGradient", titleLabel)
+    titleGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,    Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(0.55, Color3.fromHex("#CCCCEE")),
+        ColorSequenceKeypoint.new(1,    Color3.fromHex("#7777AA")),
+    })
+
+    local subtitleLabel = Instance.new("TextLabel", header)
+    subtitleLabel.Size               = UDim2.new(1, -90, 0, 12)
+    subtitleLabel.Position           = UDim2.new(0, 32, 0.5, 11)
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Font               = Enum.Font.Gotham
+    subtitleLabel.Text               = version ~= "" and version or "Meyy Hub"
+    subtitleLabel.TextSize           = 9
+    subtitleLabel.TextColor3         = THEME.TextLo
+    subtitleLabel.TextXAlignment     = Enum.TextXAlignment.Left
+    subtitleLabel.ZIndex             = 13
+
+    local chip = Instance.new("Frame", header)
+    chip.Size               = UDim2.new(0, 60, 0, 20)
+    chip.Position           = UDim2.new(1, -72, 0.5, -10)
+    chip.BackgroundColor3   = THEME.Surface2
+    chip.BackgroundTransparency = 0
+    chip.BorderSizePixel    = 0
+    chip.ZIndex             = 14
+    Instance.new("UICorner", chip).CornerRadius = UDim.new(0, 6)
+    local chipStroke = Instance.new("UIStroke", chip)
+    chipStroke.Color     = THEME.TextDim
+    chipStroke.Thickness = 1
+
+    local chipDot = Instance.new("Frame", chip)
+    chipDot.Size             = UDim2.new(0, 5, 0, 5)
+    chipDot.Position         = UDim2.new(0, 8, 0.5, 0)
+    chipDot.AnchorPoint      = Vector2.new(0, 0.5)
+    chipDot.BackgroundColor3 = accent
+    chipDot.BorderSizePixel  = 0
+    chipDot.ZIndex           = 15
+    Instance.new("UICorner", chipDot).CornerRadius = UDim.new(1, 0)
+
+    local chipLabel = Instance.new("TextLabel", chip)
+    chipLabel.Size               = UDim2.new(1, -18, 1, 0)
+    chipLabel.Position           = UDim2.new(0, 18, 0, 0)
+    chipLabel.BackgroundTransparency = 1
+    chipLabel.Font               = Enum.Font.GothamBold
+    chipLabel.Text               = "Loading"
+    chipLabel.TextSize           = 9
+    chipLabel.TextColor3         = accent
+    chipLabel.TextXAlignment     = Enum.TextXAlignment.Left
+    chipLabel.ZIndex             = 15
+
+    task.spawn(function()
+        local cs = Instance.new("UIScale", chipDot)
+        while chipDot and chipDot.Parent do
+            makeTween(cs, 0.55, {Scale = 1.5}):Play()
+            task.wait(0.55)
+            makeTween(cs, 0.55, {Scale = 1}):Play()
+            task.wait(0.55)
+        end
+    end)
+
+    local divider = Instance.new("Frame", frame)
+    divider.Size               = UDim2.new(1, -36, 0, 1)
+    divider.Position           = UDim2.new(0, 18, 0, 64)
+    divider.BackgroundColor3   = Color3.fromHex("#FFFFFF")
+    divider.BackgroundTransparency = 0.92
+    divider.BorderSizePixel    = 0
+    divider.ZIndex             = 12
+    local divGrad = Instance.new("UIGradient", divider)
+    divGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   Color3.fromHex("#000000")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
+    })
+
+    local content = Instance.new("Frame", frame)
+    content.Size               = UDim2.new(1, -36, 1, -76)
+    content.Position           = UDim2.new(0, 18, 0, 70)
+    content.BackgroundTransparency = 1
+    content.ZIndex             = 11
+
+    local statusRow = Instance.new("Frame", content)
+    statusRow.Size               = UDim2.new(1, 0, 0, 14)
+    statusRow.Position           = UDim2.new(0, 0, 0, 0)
+    statusRow.BackgroundTransparency = 1
+    statusRow.ZIndex             = 11
+
+    local statusLabel = Instance.new("TextLabel", statusRow)
+    statusLabel.Size               = UDim2.new(1, -50, 1, 0)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Font               = Enum.Font.Gotham
+    statusLabel.Text               = "Initializing"
+    statusLabel.TextSize           = 10
+    statusLabel.TextColor3         = THEME.TextLo
+    statusLabel.TextXAlignment     = Enum.TextXAlignment.Left
+    statusLabel.ZIndex             = 11
+
+    local pctLabel = Instance.new("TextLabel", statusRow)
+    pctLabel.Size               = UDim2.new(0, 45, 1, 0)
+    pctLabel.Position           = UDim2.new(1, -45, 0, 0)
+    pctLabel.BackgroundTransparency = 1
+    pctLabel.Font               = Enum.Font.GothamBold
+    pctLabel.Text               = "0%"
+    pctLabel.TextSize           = 10
+    pctLabel.TextColor3         = accent
+    pctLabel.TextXAlignment     = Enum.TextXAlignment.Right
+    pctLabel.ZIndex             = 11
+
+    local barTrack = Instance.new("Frame", content)
+    barTrack.Size             = UDim2.new(1, 0, 0, 2)
+    barTrack.Position         = UDim2.new(0, 0, 0, 22)
+    barTrack.BackgroundColor3 = Color3.fromHex("#141420")
+    barTrack.BorderSizePixel  = 0
+    barTrack.ZIndex           = 11
+    Instance.new("UICorner", barTrack).CornerRadius = UDim.new(1, 0)
+
+    local barFill = Instance.new("Frame", barTrack)
+    barFill.Size             = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = accent
+    barFill.BorderSizePixel  = 0
+    barFill.ZIndex           = 12
+    Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+
+    local barGrad = Instance.new("UIGradient", barFill)
+    barGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,    accent),
+        ColorSequenceKeypoint.new(0.65, Color3.fromHex("#C0CCFF")),
+        ColorSequenceKeypoint.new(1,    Color3.fromHex("#FFFFFF")),
+    })
+    table.insert(rotGrads, barGrad)
+
+    local shimmer = Instance.new("Frame", barFill)
+    shimmer.Size             = UDim2.new(0.28, 0, 1, 0)
+    shimmer.Position         = UDim2.new(-0.32, 0, 0, 0)
+    shimmer.BackgroundColor3 = Color3.new(1, 1, 1)
+    shimmer.BackgroundTransparency = 0.55
+    shimmer.BorderSizePixel  = 0
+    shimmer.ZIndex           = 13
+    Instance.new("UICorner", shimmer).CornerRadius = UDim.new(1, 0)
+    local shimGrad = Instance.new("UIGradient", shimmer)
+    shimGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   Color3.fromHex("#000000")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
+    })
+    task.spawn(function()
+        while shimmer and shimmer.Parent do
+            TweenService:Create(shimmer, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {
+                Position = UDim2.new(1.32, 0, 0, 0)
+            }):Play()
+            task.wait(1.7)
+            shimmer.Position = UDim2.new(-0.32, 0, 0, 0)
+        end
+    end)
+
+    local rot = 0
+    local rotConn
+    rotConn = RunService.RenderStepped:Connect(function()
+        if not frame.Parent then rotConn:Disconnect() return end
+        rot = (rot + 0.9) % 360
+        for _, g in ipairs(rotGrads) do
+            if g and g.Parent then g.Rotation = rot end
+        end
+    end)
+
+    local function setStatus(text)
+        makeTween(statusLabel, 0.15, {TextTransparency = 1}):Play()
+        task.delay(0.08, function()
+            if not statusLabel or not statusLabel.Parent then return end
+            statusLabel.Text = text
+            makeTween(statusLabel, 0.15, {TextTransparency = 0}):Play()
         end)
     end
 
-    local title = Instance.new("TextLabel", frame)
-    title.Size               = UDim2.new(1, -40, 0, 20)
-    title.Position           = UDim2.new(0, 20, 0, 44)
-    title.BackgroundTransparency = 1
-    title.Font               = Enum.Font.GothamBold
-    title.Text               = "Meyy Hub"
-    title.TextSize           = 16
-    title.TextColor3         = Color3.fromHex("#EEEEFF")
-    title.TextXAlignment     = Enum.TextXAlignment.Center
-    title.ZIndex             = 11
-
-    local gameLabel = Instance.new("TextLabel", frame)
-    gameLabel.Size               = UDim2.new(1, -40, 0, 16)
-    gameLabel.Position           = UDim2.new(0, 20, 0, 66)
-    gameLabel.BackgroundTransparency = 1
-    gameLabel.Font               = Enum.Font.Gotham
-    gameLabel.Text               = gameName
-    gameLabel.TextSize           = 12
-    gameLabel.TextColor3         = Color3.fromHex("#6B6B9A")
-    gameLabel.TextXAlignment     = Enum.TextXAlignment.Center
-    gameLabel.ZIndex             = 11
-
-    if version ~= "" then
-        local vtag = Instance.new("Frame", frame)
-        vtag.Size               = UDim2.new(0, 54, 0, 18)
-        vtag.Position           = UDim2.new(0.5, -27, 0, 84)
-        vtag.BackgroundColor3   = Color3.fromHex("#181830")
-        vtag.BorderSizePixel    = 0
-        vtag.ZIndex             = 12
-        Instance.new("UICorner", vtag).CornerRadius = UDim.new(0, 5)
-        local vb = Instance.new("UIStroke", vtag)
-        vb.Color = Color3.fromHex("#282848")
-        vb.Thickness = 1
-        local vl = Instance.new("TextLabel", vtag)
-        vl.Size               = UDim2.new(1, 0, 1, 0)
-        vl.BackgroundTransparency = 1
-        vl.Font               = Enum.Font.Gotham
-        vl.Text               = version
-        vl.TextSize           = 9
-        vl.TextColor3         = Color3.fromHex("#7A7AA8")
-        vl.TextXAlignment     = Enum.TextXAlignment.Center
-        vl.ZIndex             = 13
+    local lastPct = -1
+    local function setPct(p)
+        local n = math.floor(p * 100)
+        if n ~= lastPct then
+            lastPct = n
+            pctLabel.Text = n .. "%"
+        end
+        makeTween(barFill, 0.12, {Size = UDim2.new(p, 0, 1, 0)}):Play()
     end
 
-    local statusLabel = Instance.new("TextLabel", frame)
-    statusLabel.Size               = UDim2.new(1, -40, 0, 16)
-    statusLabel.Position           = UDim2.new(0, 20, 0, supported and 106 or 106)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Font               = Enum.Font.Gotham
-    statusLabel.Text               = supported and "Initializing..." or "Game not supported"
-    statusLabel.TextSize           = 11
-    statusLabel.TextColor3         = supported and Color3.fromHex("#6B6B9A") or Color3.fromHex("#505080")
-    statusLabel.TextXAlignment     = Enum.TextXAlignment.Center
-    statusLabel.ZIndex             = 11
+    local function done()
+        barGrad.Enabled = false
+        barFill.BackgroundColor3 = THEME.Green
+        chipDot.BackgroundColor3 = THEME.Green
+        chipLabel.TextColor3 = THEME.Green
+        chipLabel.Text = "Ready"
+        chipStroke.Color = THEME.Green
+        pctLabel.TextColor3 = THEME.Green
+        pctLabel.Text = "100%"
+        dot.BackgroundColor3 = THEME.Green
+        dotGrad.Enabled = false
+        setStatus("Loaded successfully")
+    end
 
-    if supported then
-        local progressFrame = Instance.new("Frame", frame)
-        progressFrame.Size               = UDim2.new(1, -48, 0, 3)
-        progressFrame.Position           = UDim2.new(0, 24, 0, 126)
-        progressFrame.BackgroundColor3   = Color3.fromHex("#1A1A32")
-        progressFrame.BorderSizePixel    = 0
-        progressFrame.ZIndex             = 11
-        Instance.new("UICorner", progressFrame).CornerRadius = UDim.new(1, 0)
+    local function fadeOut(delay, cb)
+        task.delay(delay, function()
+            makeTween(frame, 0.4, {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, W, 0, 0),
+            }):Play()
+            makeTween(outerStroke, 0.4, {Thickness = 0}):Play()
+            task.wait(0.45)
+            gui:Destroy()
+            if cb then cb() end
+        end)
+    end
 
-        local fill = Instance.new("Frame", progressFrame)
-        fill.Size             = UDim2.new(0, 0, 1, 0)
-        fill.BackgroundColor3 = accent
-        fill.BorderSizePixel  = 0
-        fill.ZIndex           = 12
-        Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+    TweenService:Create(frame,
+        TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        { Size = UDim2.new(0, W, 0, H) }
+    ):Play()
 
-        local pctLabel = Instance.new("TextLabel", frame)
-        pctLabel.Size               = UDim2.new(0, 60, 0, 16)
-        pctLabel.Position           = UDim2.new(1, -80, 0, 106)
-        pctLabel.BackgroundTransparency = 1
-        pctLabel.Font               = Enum.Font.GothamBold
-        pctLabel.Text               = "0%"
-        pctLabel.TextSize           = 11
-        pctLabel.TextColor3         = accent
-        pctLabel.TextXAlignment     = Enum.TextXAlignment.Right
-        pctLabel.ZIndex             = 11
+    task.wait(0.65)
 
-        local function setStatus(text)
-            tween(statusLabel, 0.15, {TextTransparency = 1}):Play()
-            task.delay(0.08, function()
-                if not statusLabel or not statusLabel.Parent then return end
-                statusLabel.Text = text
-                tween(statusLabel, 0.15, {TextTransparency = 0}):Play()
-            end)
+    if scriptRaw == "" then
+        setPct(1)
+        chipLabel.Text = "Unsupported"
+        chipDot.BackgroundColor3 = THEME.TextLo
+        chipLabel.TextColor3 = THEME.TextLo
+        chipStroke.Color = THEME.TextDim
+        pctLabel.Text = "—"
+        setStatus("Game not supported")
+        fadeOut(3)
+        return
+    end
+
+    local startTime = tick()
+    local stepIdx   = 0
+    local conn
+
+    conn = RunService.Heartbeat:Connect(function()
+        local p = math.min((tick() - startTime) / duration, 1)
+        setPct(p)
+
+        for i = 1, #steps do
+            if p >= steps[i].at and stepIdx < i then
+                stepIdx = i
+                setStatus(steps[i].text)
+            end
         end
 
-        TweenService:Create(frame,
-            TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            { Size = UDim2.new(0, W, 0, H) }
-        ):Play()
-        task.wait(0.65)
-
-        local startTime = tick()
-        local stepIdx   = 0
-        local conn
-
-        conn = RunService.Heartbeat:Connect(function()
-            local p = math.min((tick() - startTime) / duration, 1)
-            local n = math.floor(p * 100)
-            pctLabel.Text = n .. "%"
-            tween(fill, 0.15, {Size = UDim2.new(p, 0, 1, 0)}):Play()
-
-            for i = 1, #steps do
-                if p >= steps[i].at and stepIdx < i then
-                    stepIdx = i
-                    setStatus(steps[i].text)
-                end
-            end
-
-            if p >= 1 then
-                conn:Disconnect()
-                pctLabel.Text = "100%"
-                fill.Size = UDim2.new(1, 0, 1, 0)
-                statusLabel.Text = "Ready"
-                statusLabel.TextColor3 = Color3.fromHex("#00D68F")
-                pctLabel.TextColor3 = Color3.fromHex("#00D68F")
-
-                task.wait(0.8)
-                tween(frame, 0.35, {
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0, W, 0, 0),
-                }):Play()
-                tween(border, 0.35, {Thickness = 0}):Play()
-                task.wait(0.4)
-                gui:Destroy()
-
+        if p >= 1 then
+            conn:Disconnect()
+            done()
+            fadeOut(0.9, function()
                 local ok, err = pcall(function()
                     loadstring(game:HttpGet(scriptRaw, true))()
                 end)
                 if not ok then onError(err) end
-            end
-        end)
-    else
-        TweenService:Create(frame,
-            TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            { Size = UDim2.new(0, W, 0, H) }
-        ):Play()
-        task.wait(2.5)
-        tween(frame, 0.35, {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0, W, 0, 0),
-        }):Play()
-        tween(border, 0.35, {Thickness = 0}):Play()
-        task.wait(0.4)
-        gui:Destroy()
-    end
+            end)
+        end
+    end)
 end
 
 return Library
