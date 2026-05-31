@@ -91,7 +91,7 @@ function Library:CreateLoader(config)
     cx.ZIndex             = 11
 
     local title = Instance.new("TextLabel", cx)
-    title.Size               = UDim2.new(0, 0, 0, 24)
+    title.Size               = UDim2.new(0, 120, 0, 24)
     title.BackgroundTransparency = 1
     title.Font               = Enum.Font.GothamBold
     title.Text               = "Meyy Hub"
@@ -99,11 +99,10 @@ function Library:CreateLoader(config)
     title.TextColor3         = THEME.Text01
     title.TextXAlignment     = Enum.TextXAlignment.Left
     title.ZIndex             = 12
-    title.Size               = UDim2.new(0, title.TextBounds.X + 4, 0, 24)
 
     local dot = Instance.new("Frame", cx)
     dot.Size             = UDim2.new(0, 6, 0, 6)
-    dot.Position         = UDim2.new(0, title.TextBounds.X + 12, 0.5, -3)
+    dot.Position         = UDim2.new(0, 126, 0.5, -3)
     dot.BackgroundColor3 = accent
     dot.BorderSizePixel  = 0
     dot.ZIndex           = 13
@@ -132,7 +131,7 @@ function Library:CreateLoader(config)
     end)
 
     local subtitle = Instance.new("TextLabel", cx)
-    subtitle.Size               = UDim2.new(1, 0, 0, 16)
+    subtitle.Size               = UDim2.new(1, -130, 0, 16)
     subtitle.Position           = UDim2.new(0, 0, 0, 28)
     subtitle.BackgroundTransparency = 1
     subtitle.Font               = Enum.Font.Gotham
@@ -143,7 +142,17 @@ function Library:CreateLoader(config)
     subtitle.ZIndex             = 12
 
     if version ~= "" then
-        local vtag = Instance.new("Frame", subtitle)
+        local vtag = Instance.new("Frame", cx)
+        vtag.Name = "VersionTag"
+        vtag.Size               = UDim2.new(0, 60, 0, 18)
+        vtag.Position           = UDim2.new(0, subtitle.Size.X.Offset + 10, 0, 28)
+        vtag.BackgroundColor3   = THEME.Surface
+        vtag.BorderSizePixel    = 0
+        vtag.ZIndex             = 13
+        Instance.new("UICorner", vtag).CornerRadius = UDim.new(0, 5)
+        local vb = Instance.new("UIStroke", vtag)
+        vb.Color = THEME.Border
+        vb.Thickness = 1
         local vl = Instance.new("TextLabel", vtag)
         vl.Size               = UDim2.new(1, -10, 1, 0)
         vl.Position           = UDim2.new(0, 5, 0, 0)
@@ -154,20 +163,11 @@ function Library:CreateLoader(config)
         vl.TextColor3         = THEME.Text02
         vl.TextXAlignment     = Enum.TextXAlignment.Center
         vl.ZIndex             = 14
-        vtag.Size               = UDim2.new(0, vl.TextBounds.X + 14, 0, 18)
-        vtag.Position           = UDim2.new(0, subtitle.TextBounds.X + 10, 0.5, -9)
-        vtag.BackgroundColor3   = THEME.Surface
-        vtag.BorderSizePixel    = 0
-        vtag.ZIndex             = 13
-        Instance.new("UICorner", vtag).CornerRadius = UDim.new(0, 5)
-        local vb = Instance.new("UIStroke", vtag)
-        vb.Color = THEME.Border
-        vb.Thickness = 1
     end
 
     local barTrack = Instance.new("Frame", cx)
     barTrack.Size             = UDim2.new(1, 0, 0, 4)
-    barTrack.Position         = UDim2.new(0, 0, 0, 60)
+    barTrack.Position         = UDim2.new(0, 0, 0, 58)
     barTrack.BackgroundColor3 = Color3.fromHex("#1A1A30")
     barTrack.BorderSizePixel  = 0
     barTrack.ZIndex           = 11
@@ -197,9 +197,14 @@ function Library:CreateLoader(config)
     barGlow.ZIndex           = 10
     Instance.new("UICorner", barGlow).CornerRadius = UDim.new(1, 0)
 
-    local statusLabel = Instance.new("TextLabel", cx)
+    local statusRow = Instance.new("Frame", cx)
+    statusRow.Size               = UDim2.new(1, 0, 0, 18)
+    statusRow.Position           = UDim2.new(0, 0, 0, 72)
+    statusRow.BackgroundTransparency = 1
+    statusRow.ZIndex             = 12
+
+    local statusLabel = Instance.new("TextLabel", statusRow)
     statusLabel.Size               = UDim2.new(1, -65, 0, 18)
-    statusLabel.Position           = UDim2.new(0, 0, 0, 74)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Font               = Enum.Font.Gotham
     statusLabel.Text               = "Initializing"
@@ -208,9 +213,9 @@ function Library:CreateLoader(config)
     statusLabel.TextXAlignment     = Enum.TextXAlignment.Left
     statusLabel.ZIndex             = 12
 
-    local pctLabel = Instance.new("TextLabel", cx)
+    local pctLabel = Instance.new("TextLabel", statusRow)
     pctLabel.Size               = UDim2.new(0, 60, 0, 18)
-    pctLabel.Position           = UDim2.new(1, -60, 0, 74)
+    pctLabel.Position           = UDim2.new(1, -60, 0, 0)
     pctLabel.BackgroundTransparency = 1
     pctLabel.Font               = Enum.Font.GothamBold
     pctLabel.Text               = "0%"
