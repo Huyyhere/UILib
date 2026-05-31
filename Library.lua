@@ -9,7 +9,7 @@ function Library:CreateLoader(config)
     local gameName  = config.GameName  or "Unknown Game"
     local scriptRaw = config.ScriptRaw or ""
     local version   = config.Version   or ""
-    local duration  = config.Duration  or 3.0
+    local duration  = config.Duration  or 3.5
     local accent    = config.Accent    or Color3.fromHex("#6E7FFF")
     local onError   = config.OnError   or function(e) warn("[Meyy Hub]:", e) end
     local steps     = config.Steps or {
@@ -22,7 +22,8 @@ function Library:CreateLoader(config)
     local old = CoreGui:FindFirstChild("MeyyHubLoader")
     if old then old:Destroy() end
 
-    local W, H = 400, 120
+    local W, H = 420, 130
+    local rotGrads = {}
 
     local gui = Instance.new("ScreenGui")
     gui.Name           = "MeyyHubLoader"
@@ -38,15 +39,62 @@ function Library:CreateLoader(config)
     frame.BorderSizePixel        = 0
     frame.ClipsDescendants       = true
     frame.ZIndex                 = 10
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
 
     local border = Instance.new("UIStroke", frame)
     border.Color     = Color3.fromHex("#1E1E3A")
     border.Thickness = 1
 
+    local gradBorder = Instance.new("UIStroke", frame)
+    gradBorder.Thickness = 1.5
+    gradBorder.Transparency = 0.5
+    local grad = Instance.new("UIGradient", gradBorder)
+    grad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,    Color3.fromHex("#1A1A30")),
+        ColorSequenceKeypoint.new(0.25, Color3.fromHex("#6E7FFF")),
+        ColorSequenceKeypoint.new(0.5,  Color3.fromHex("#9D7FFF")),
+        ColorSequenceKeypoint.new(0.75, Color3.fromHex("#6E7FFF")),
+        ColorSequenceKeypoint.new(1,    Color3.fromHex("#1A1A30")),
+    })
+    table.insert(rotGrads, grad)
+
+    local dot = Instance.new("Frame", frame)
+    dot.Size             = UDim2.new(0, 7, 0, 7)
+    dot.Position         = UDim2.new(0, 20, 0, 18)
+    dot.BackgroundColor3 = accent
+    dot.BorderSizePixel  = 0
+    dot.ZIndex           = 12
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+
+    local dotGlow = Instance.new("Frame", dot)
+    dotGlow.Size               = UDim2.new(3, 0, 3, 0)
+    dotGlow.Position           = UDim2.new(-1, 0, -1, 0)
+    dotGlow.BackgroundColor3   = accent
+    dotGlow.BackgroundTransparency = 0.6
+    dotGlow.BorderSizePixel    = 0
+    dotGlow.ZIndex             = 11
+    Instance.new("UICorner", dotGlow).CornerRadius = UDim.new(1, 0)
+
+    local function tween(obj, t, props)
+        return TweenService:Create(obj, TweenInfo.new(t, Enum.EasingStyle.Sine), props)
+    end
+
+    task.spawn(function()
+        local ds = Instance.new("UIScale", dot)
+        local dg = dotGlow
+        while dot and dot.Parent do
+            tween(ds, 0.7, {Scale = 1.4}):Play()
+            if dg and dg.Parent then tween(dg, 0.7, {BackgroundTransparency = 0.4}):Play() end
+            task.wait(0.7)
+            tween(ds, 0.7, {Scale = 1}):Play()
+            if dg and dg.Parent then tween(dg, 0.7, {BackgroundTransparency = 0.6}):Play() end
+            task.wait(0.7)
+        end
+    end)
+
     local title = Instance.new("TextLabel", frame)
-    title.Size               = UDim2.new(1, -40, 0, 22)
-    title.Position           = UDim2.new(0, 20, 0, 16)
+    title.Size               = UDim2.new(1, -80, 0, 22)
+    title.Position           = UDim2.new(0, 34, 0, 15)
     title.BackgroundTransparency = 1
     title.Font               = Enum.Font.GothamBold
     title.Text               = "Meyy Hub  ·  " .. gameName
@@ -70,30 +118,30 @@ function Library:CreateLoader(config)
 
     local statusLabel = Instance.new("TextLabel", frame)
     statusLabel.Size               = UDim2.new(1, -80, 0, 18)
-    statusLabel.Position           = UDim2.new(0, 20, 0, 64)
+    statusLabel.Position           = UDim2.new(0, 20, 0, 66)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Font               = Enum.Font.Gotham
     statusLabel.Text               = "Initializing"
-    statusLabel.TextSize           = 11
+    statusLabel.TextSize           = 12
     statusLabel.TextColor3         = Color3.fromHex("#7A7AA8")
     statusLabel.TextXAlignment     = Enum.TextXAlignment.Left
     statusLabel.ZIndex             = 11
 
     local pctLabel = Instance.new("TextLabel", frame)
     pctLabel.Size               = UDim2.new(0, 55, 0, 18)
-    pctLabel.Position           = UDim2.new(1, -75, 0, 64)
+    pctLabel.Position           = UDim2.new(1, -75, 0, 66)
     pctLabel.BackgroundTransparency = 1
     pctLabel.Font               = Enum.Font.GothamBold
     pctLabel.Text               = "0%"
-    pctLabel.TextSize           = 11
+    pctLabel.TextSize           = 12
     pctLabel.TextColor3         = accent
     pctLabel.TextXAlignment     = Enum.TextXAlignment.Right
     pctLabel.ZIndex             = 11
 
     local bar = Instance.new("Frame", frame)
-    bar.Size             = UDim2.new(1, -40, 0, 3)
-    bar.Position         = UDim2.new(0, 20, 0, 86)
-    bar.BackgroundColor3 = Color3.fromHex("#1A1A30")
+    bar.Size             = UDim2.new(1, -40, 0, 4)
+    bar.Position         = UDim2.new(0, 20, 0, 92)
+    bar.BackgroundColor3 = Color3.fromHex("#1A1A32")
     bar.BorderSizePixel  = 0
     bar.ZIndex           = 11
     Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
@@ -111,45 +159,68 @@ function Library:CreateLoader(config)
         ColorSequenceKeypoint.new(0.5,  Color3.fromHex("#C0CCFF")),
         ColorSequenceKeypoint.new(1,    Color3.fromHex("#FFFFFF")),
     })
+    table.insert(rotGrads, barGrad)
 
-    local function tween(obj, t, props)
-        return TweenService:Create(obj, TweenInfo.new(t, Enum.EasingStyle.Sine), props)
-    end
+    local barGlow = Instance.new("Frame", bar)
+    barGlow.Size             = UDim2.new(0, 0, 1, 12)
+    barGlow.Position         = UDim2.new(0, 0, 0, -6)
+    barGlow.BackgroundColor3 = accent
+    barGlow.BackgroundTransparency = 0.85
+    barGlow.BorderSizePixel  = 0
+    barGlow.ZIndex           = 10
+    Instance.new("UICorner", barGlow).CornerRadius = UDim.new(1, 0)
+
+    -- Rotating gradient animation (slow & smooth)
+    local rot = 0
+    local rotConn
+    rotConn = RunService.RenderStepped:Connect(function()
+        if not frame.Parent then rotConn:Disconnect() return end
+        rot = (rot + 0.6) % 360
+        for _, g in ipairs(rotGrads) do
+            if g and g.Parent then g.Rotation = rot end
+        end
+    end)
 
     local function setStatus(text)
-        tween(statusLabel, 0.1, {TextTransparency = 1}):Play()
-        task.delay(0.05, function()
+        tween(statusLabel, 0.2, {TextTransparency = 1}):Play()
+        task.delay(0.1, function()
             if not statusLabel or not statusLabel.Parent then return end
             statusLabel.Text = text
-            tween(statusLabel, 0.1, {TextTransparency = 0}):Play()
+            tween(statusLabel, 0.2, {TextTransparency = 0}):Play()
         end)
     end
 
     local function setPct(p)
         local n = math.floor(p * 100)
         pctLabel.Text = n .. "%"
-        tween(fill, 0.12, {Size = UDim2.new(p, 0, 1, 0)}):Play()
+        tween(fill, 0.25, {Size = UDim2.new(p, 0, 1, 0)}):Play()
+        tween(barGlow, 0.25, {Size = UDim2.new(p, 0, 1, 12)}):Play()
     end
 
     local function fadeOut(delay, cb)
         task.delay(delay, function()
-            tween(frame, 0.3, {BackgroundTransparency = 1, Size = UDim2.new(0, W, 0, 0)}):Play()
-            tween(border, 0.3, {Thickness = 0}):Play()
-            task.wait(0.35)
+            tween(frame, 0.5, {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, W, 0, 0),
+            }):Play()
+            tween(border, 0.5, {Thickness = 0}):Play()
+            tween(gradBorder, 0.5, {Thickness = 0}):Play()
+            task.wait(0.55)
             gui:Destroy()
             if cb then cb() end
         end)
     end
 
+    -- Entrance animation (slow & premium)
     TweenService:Create(frame,
-        TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        TweenInfo.new(0.65, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         { Size = UDim2.new(0, W, 0, H) }
     ):Play()
-    task.wait(0.55)
+    task.wait(0.8)
 
     if scriptRaw == "" then
         setPct(1)
-        fadeOut(1.5)
+        fadeOut(2)
         return
     end
 
@@ -170,7 +241,8 @@ function Library:CreateLoader(config)
 
         if p >= 1 then
             conn:Disconnect()
-            fadeOut(0.9, function()
+            setStatus("Ready")
+            fadeOut(1.5, function()
                 local ok, err = pcall(function()
                     loadstring(game:HttpGet(scriptRaw, true))()
                 end)
