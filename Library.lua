@@ -22,7 +22,8 @@ function Library:CreateLoader(config)
     local old = CoreGui:FindFirstChild("MeyyHubLoader")
     if old then old:Destroy() end
 
-    local W, H = 420, 130
+    local W, H = 400, 126
+    local supported = scriptRaw ~= ""
     local rotGrads = {}
 
     local gui = Instance.new("ScreenGui")
@@ -35,14 +36,14 @@ function Library:CreateLoader(config)
     frame.AnchorPoint            = Vector2.new(0.5, 0.5)
     frame.Position               = UDim2.new(0.5, 0, 0.5, 0)
     frame.Size                   = UDim2.new(0, 0, 0, 0)
-    frame.BackgroundColor3       = Color3.fromHex("#0D0D1A")
+    frame.BackgroundColor3       = Color3.fromHex("#0C0C1A")
     frame.BorderSizePixel        = 0
     frame.ClipsDescendants       = true
     frame.ZIndex                 = 10
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
 
     local border = Instance.new("UIStroke", frame)
-    border.Color     = Color3.fromHex("#1E1E3A")
+    border.Color     = Color3.fromHex("#1E1E38")
     border.Thickness = 1
 
     local gradBorder = Instance.new("UIStroke", frame)
@@ -58,9 +59,21 @@ function Library:CreateLoader(config)
     })
     table.insert(rotGrads, grad)
 
+    local accentLine = Instance.new("Frame", frame)
+    accentLine.Size               = UDim2.new(0, 60, 0, 2)
+    accentLine.Position           = UDim2.new(0, 20, 0, 0)
+    accentLine.BackgroundColor3   = accent
+    accentLine.BorderSizePixel    = 0
+    accentLine.ZIndex             = 12
+    local alGrad = Instance.new("UIGradient", accentLine)
+    alGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   accent),
+        ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
+    })
+
     local dot = Instance.new("Frame", frame)
     dot.Size             = UDim2.new(0, 7, 0, 7)
-    dot.Position         = UDim2.new(0, 20, 0, 18)
+    dot.Position         = UDim2.new(0, 20, 0, 22)
     dot.BackgroundColor3 = accent
     dot.BorderSizePixel  = 0
     dot.ZIndex           = 12
@@ -70,7 +83,7 @@ function Library:CreateLoader(config)
     dotGlow.Size               = UDim2.new(3, 0, 3, 0)
     dotGlow.Position           = UDim2.new(-1, 0, -1, 0)
     dotGlow.BackgroundColor3   = accent
-    dotGlow.BackgroundTransparency = 0.6
+    dotGlow.BackgroundTransparency = 0.65
     dotGlow.BorderSizePixel    = 0
     dotGlow.ZIndex             = 11
     Instance.new("UICorner", dotGlow).CornerRadius = UDim.new(1, 0)
@@ -83,18 +96,18 @@ function Library:CreateLoader(config)
         local ds = Instance.new("UIScale", dot)
         local dg = dotGlow
         while dot and dot.Parent do
-            tween(ds, 0.7, {Scale = 1.4}):Play()
-            if dg and dg.Parent then tween(dg, 0.7, {BackgroundTransparency = 0.4}):Play() end
+            tween(ds, 0.7, {Scale = 1.5}):Play()
+            if dg and dg.Parent then tween(dg, 0.7, {BackgroundTransparency = 0.45}):Play() end
             task.wait(0.7)
             tween(ds, 0.7, {Scale = 1}):Play()
-            if dg and dg.Parent then tween(dg, 0.7, {BackgroundTransparency = 0.6}):Play() end
+            if dg and dg.Parent then tween(dg, 0.7, {BackgroundTransparency = 0.65}):Play() end
             task.wait(0.7)
         end
     end)
 
     local title = Instance.new("TextLabel", frame)
-    title.Size               = UDim2.new(1, -80, 0, 22)
-    title.Position           = UDim2.new(0, 34, 0, 15)
+    title.Size               = UDim2.new(1, -90, 0, 22)
+    title.Position           = UDim2.new(0, 34, 0, 20)
     title.BackgroundTransparency = 1
     title.Font               = Enum.Font.GothamBold
     title.Text               = "Meyy Hub  ·  " .. gameName
@@ -103,25 +116,12 @@ function Library:CreateLoader(config)
     title.TextXAlignment     = Enum.TextXAlignment.Left
     title.ZIndex             = 11
 
-    if version ~= "" then
-        local vl = Instance.new("TextLabel", frame)
-        vl.Size               = UDim2.new(1, -40, 0, 16)
-        vl.Position           = UDim2.new(0, 20, 0, 40)
-        vl.BackgroundTransparency = 1
-        vl.Font               = Enum.Font.Gotham
-        vl.Text               = version
-        vl.TextSize           = 11
-        vl.TextColor3         = Color3.fromHex("#7A7AA8")
-        vl.TextXAlignment     = Enum.TextXAlignment.Left
-        vl.ZIndex             = 11
-    end
-
     local statusLabel = Instance.new("TextLabel", frame)
-    statusLabel.Size               = UDim2.new(1, -80, 0, 18)
-    statusLabel.Position           = UDim2.new(0, 20, 0, 66)
+    statusLabel.Size               = UDim2.new(1, -160, 0, 18)
+    statusLabel.Position           = UDim2.new(0, 20, 0, 54)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Font               = Enum.Font.Gotham
-    statusLabel.Text               = "Initializing"
+    statusLabel.Text               = supported and "Initializing" or "Checking game support..."
     statusLabel.TextSize           = 12
     statusLabel.TextColor3         = Color3.fromHex("#7A7AA8")
     statusLabel.TextXAlignment     = Enum.TextXAlignment.Left
@@ -129,25 +129,39 @@ function Library:CreateLoader(config)
 
     local pctLabel = Instance.new("TextLabel", frame)
     pctLabel.Size               = UDim2.new(0, 55, 0, 18)
-    pctLabel.Position           = UDim2.new(1, -75, 0, 66)
+    pctLabel.Position           = UDim2.new(1, -75, 0, 54)
     pctLabel.BackgroundTransparency = 1
     pctLabel.Font               = Enum.Font.GothamBold
-    pctLabel.Text               = "0%"
+    pctLabel.Text               = supported and "0%" or "—"
     pctLabel.TextSize           = 12
-    pctLabel.TextColor3         = accent
+    pctLabel.TextColor3         = supported and accent or Color3.fromHex("#505080")
     pctLabel.TextXAlignment     = Enum.TextXAlignment.Right
     pctLabel.ZIndex             = 11
 
     local bar = Instance.new("Frame", frame)
     bar.Size             = UDim2.new(1, -40, 0, 4)
-    bar.Position         = UDim2.new(0, 20, 0, 92)
-    bar.BackgroundColor3 = Color3.fromHex("#1A1A32")
+    bar.Position         = UDim2.new(0, 20, 0, 80)
+    bar.BackgroundColor3 = Color3.fromHex("#181830")
     bar.BorderSizePixel  = 0
     bar.ZIndex           = 11
     Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
 
+    if not supported then
+        local bg = Instance.new("UIGradient", bar)
+        bg.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0,   Color3.fromHex("#000000")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#404060")),
+            ColorSequenceKeypoint.new(1,   Color3.fromHex("#000000")),
+        })
+        bg.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0,   0.3),
+            NumberSequenceKeypoint.new(0.5, 0.6),
+            NumberSequenceKeypoint.new(1,   0.3),
+        })
+    end
+
     local fill = Instance.new("Frame", bar)
-    fill.Size             = UDim2.new(0, 0, 1, 0)
+    fill.Size             = UDim2.new(0, supported and 0 or 0, 1, 0)
     fill.BackgroundColor3 = accent
     fill.BorderSizePixel  = 0
     fill.ZIndex           = 12
@@ -170,7 +184,37 @@ function Library:CreateLoader(config)
     barGlow.ZIndex           = 10
     Instance.new("UICorner", barGlow).CornerRadius = UDim.new(1, 0)
 
-    -- Rotating gradient animation (slow & smooth)
+    -- Bottom info
+    local info = Instance.new("TextLabel", frame)
+    info.Size               = UDim2.new(1, -40, 0, 14)
+    info.Position           = UDim2.new(0, 20, 0, 94)
+    info.BackgroundTransparency = 1
+    info.Font               = Enum.Font.Gotham
+    info.Text               = supported and "v" .. (version ~= "" and version or duration .. "s") or "This game is not yet supported"
+    info.TextSize           = 10
+    info.TextColor3         = Color3.fromHex("#505080")
+    info.TextXAlignment     = Enum.TextXAlignment.Left
+    info.ZIndex             = 11
+
+    local tip = Instance.new("TextLabel", frame)
+    tip.Size               = UDim2.new(1, -40, 0, 14)
+    tip.Position           = UDim2.new(0, 20, 0, 108)
+    tip.BackgroundTransparency = 1
+    tip.Font               = Enum.Font.Gotham
+    tip.Text               = supported and "Loading..." or "Close in 5s"
+    tip.TextSize           = 10
+    tip.TextColor3         = Color3.fromHex("#3A3A60")
+    tip.TextXAlignment     = Enum.TextXAlignment.Left
+    tip.ZIndex             = 11
+
+    if not supported then
+        fill.Size = UDim2.new(1, 0, 1, 0)
+        fill.BackgroundColor3 = Color3.fromHex("#404060")
+        fill.BackgroundTransparency = 0.4
+        barGrad.Enabled = false
+        barGlow.BackgroundTransparency = 1
+    end
+
     local rot = 0
     local rotConn
     rotConn = RunService.RenderStepped:Connect(function()
@@ -199,28 +243,23 @@ function Library:CreateLoader(config)
 
     local function fadeOut(delay, cb)
         task.delay(delay, function()
-            tween(frame, 0.5, {
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, W, 0, 0),
-            }):Play()
-            tween(border, 0.5, {Thickness = 0}):Play()
-            tween(gradBorder, 0.5, {Thickness = 0}):Play()
-            task.wait(0.55)
+            tween(frame, 0.4, {BackgroundTransparency = 1, Size = UDim2.new(0, W, 0, 0)}):Play()
+            tween(border, 0.4, {Thickness = 0}):Play()
+            tween(gradBorder, 0.4, {Thickness = 0}):Play()
+            task.wait(0.45)
             gui:Destroy()
             if cb then cb() end
         end)
     end
 
-    -- Entrance animation (slow & premium)
     TweenService:Create(frame,
-        TweenInfo.new(0.65, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         { Size = UDim2.new(0, W, 0, H) }
     ):Play()
-    task.wait(0.8)
+    task.wait(0.75)
 
-    if scriptRaw == "" then
-        setPct(1)
-        fadeOut(2)
+    if not supported then
+        fadeOut(5)
         return
     end
 
@@ -242,6 +281,7 @@ function Library:CreateLoader(config)
         if p >= 1 then
             conn:Disconnect()
             setStatus("Ready")
+            info.Text = "Starting..."
             fadeOut(1.5, function()
                 local ok, err = pcall(function()
                     loadstring(game:HttpGet(scriptRaw, true))()
